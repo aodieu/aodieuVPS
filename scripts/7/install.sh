@@ -59,16 +59,17 @@ printf "========================================================================
 printf "Ban hay lua chon phien ban PHP muon su dung:\n"
 prompt="Nhap vao lua chon cua ban [1-5]: "
 php_version="7.3"; # Default PHP 7.3
-options=("PHP 7.3" "PHP 7.2" "PHP 7.1" "PHP 7.0" "PHP 5.6")
+options=("PHP 7.4" "PHP 7.3" "PHP 7.2" "PHP 7.1" "PHP 7.0" "PHP 5.6")
 PS3="$prompt"
 select opt in "${options[@]}"; do 
 
     case "$REPLY" in
-    1) php_version="7.3"; break;;
-    2) php_version="7.2"; break;;
-    3) php_version="7.1"; break;;
-    4) php_version="7.0"; break;;
-    5) php_version="5.6"; break;;
+    1) php_version="7.4"; break;;
+    2) php_version="7.3"; break;;
+    3) php_version="7.2"; break;;
+    4) php_version="7.1"; break;;
+    5) php_version="7.0"; break;;
+    6) php_version="5.6"; break;;
     $(( ${#options[@]}+1 )) ) printf "\nHe thong se cai dat PHP 7.3\n"; break;;
     *) printf "Ban nhap sai, he thong cai dat PHP 7.3\n"; break;;
     esac
@@ -137,7 +138,10 @@ sleep 3
 # Enable Remi Repo
 yum-config-manager --enable remi
 
-if [ "$php_version" = "7.3" ]; then
+if [ "$php_version" = "7.4" ]; then
+	yum-config-manager --enable remi-php74
+	yum -y install nginx php-fpm php-common php-gd php-mysqlnd php-pdo php-xml php-mbstring php-mcrypt php-curl php-opcache php-cli php-pecl-zip
+elif [ "$php_version" = "7.3" ]; then
 	yum-config-manager --enable remi-php73
 	yum -y install nginx php-fpm php-common php-gd php-mysqlnd php-pdo php-xml php-mbstring php-mcrypt php-curl php-opcache php-cli php-pecl-zip
 elif [ "$php_version" = "7.2" ]; then
