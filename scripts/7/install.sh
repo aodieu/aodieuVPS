@@ -1,17 +1,17 @@
 #!/bin/bash
 #######################################################
-# aodieuVPS Script v2.1 for CentOS 7
+# aodieuVPS Script v1.0 for CentOS 7
 # To install type: 
-# curl -sO https://aodieu.com/scripts/install && bash install
+# curl -sO https://aodieu.com/script/install && bash install
 # or
-# curl -sO https://aodieu.com/scripts/$(rpm -E %centos)/install && bash install
+# curl -sO https://aodieu.com/script/$(rpm -E %centos)/install && bash install
 #######################################################
 aodieuvps_version="2.1"
 phpmyadmin_version="4.9.5" # Released 2020-03-21. Older version compatible with PHP 5.5 to 7.4 and MySQL 5.5 and newer. Currently supported for security fixes only.
 extplorer_version="2.1.13" # 05/15/2019 04:43 PM
 extplorer_id="82"
-script_root="https://raw.githubusercontent.com/aodieu/aodieuVPS/master/scripts"
-script_url="https://raw.githubusercontent.com/aodieu/aodieuVPS/master/scripts/7"
+script_root="https://aodieu.com/script/scripts"
+script_url="https://aodieu.com/script/scripts/7"
 low_ram='262144' # 256MB
 
 yum -y install gawk bc wget lsof
@@ -57,7 +57,7 @@ printf "Chuan bi qua trinh cai dat... \n"
 printf "=========================================================================\n"
 
 printf "Ban hay lua chon phien ban PHP muon su dung:\n"
-prompt="Nhap vao lua chon cua ban [1-5]: "
+prompt="Nhap vao lua chon cua ban [1-6]: "
 php_version="7.3"; # Default PHP 7.3
 options=("PHP 7.4" "PHP 7.3" "PHP 7.2" "PHP 7.1" "PHP 7.0" "PHP 5.6")
 PS3="$prompt"
@@ -703,6 +703,27 @@ if [ "$1" = "wordpress" ]; then
 fi
 
 clear
+
+printf "Bat dau cai dat autossl... \n"
+
+sudo yum install snapd -y
+
+sudo systemctl enable --now snapd.socket
+sudo ln -s /var/lib/snapd/snap /snap
+# Install snap core
+sudo snap install core
+sudo snap refresh core
+
+# Install certbot
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+
+sudo certbot --nginx
+
+printf "Cai dat autossl hoan tat"
+
+clear
+
 printf "=========================================================================\n"
 printf "Hoan tat qua trinh cau hinh... \n"
 printf "=========================================================================\n"

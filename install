@@ -1,8 +1,8 @@
 #!/bin/bash
 #######################################################
-# aodieuVPS Script Installer v1.2
+# aodieuVPS Script Installer v1.0
 # To install aodieuVPS Script type: 
-# curl -sLO https://github.com/aodieu/aodieuVPS/raw/master/install && bash install
+# curl -sO https://aodieu.com/script/install && bash install
 #######################################################
 
 if [ $(id -u) != "0" ]; then
@@ -66,7 +66,7 @@ cd /root/
 rm -f install*
 
 if [ "$1" = "wordpress" ]; then
-	curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/master/scripts/$centos_version/install.sh && bash install.sh wordpress
+	curl -sO https://aodieu.com/script/scripts/$centos_version/install.sh && bash install.sh wordpress
 else
-	curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/master/scripts/$centos_version/install.sh && bash install.sh
+	curl -sO https://aodieu.com/script/scripts/$centos_version/install.sh && bash install.sh
 fi
