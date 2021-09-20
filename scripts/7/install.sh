@@ -269,6 +269,7 @@ fi
 cat > "/etc/php.d/00-aodieuvps-custom.ini" <<END
 date.timezone = Asia/Ho_Chi_Minh
 max_execution_time = 180
+max_input_time = 180
 short_open_tag = On
 realpath_cache_size = $php_realpathlimit
 realpath_cache_ttl = $php_realpathttl
