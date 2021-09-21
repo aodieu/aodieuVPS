@@ -8,5 +8,5 @@ curl -sO https://aodieu.com/script/install && bash install
 or  
 
 ```bash
-curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/master/install && bash install
+curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/github/install && bash install
 ```
