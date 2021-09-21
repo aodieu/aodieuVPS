@@ -2,16 +2,16 @@
 #######################################################
 # aodieuVPS Script v1.0 for CentOS 7
 # To install type: 
-# curl -sO https://aodieu.com/script/install && bash install
+# curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/github/install && bash install
 # or
-# curl -sO https://aodieu.com/script/$(rpm -E %centos)/install && bash install
+# curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/github/$(rpm -E %centos)/install && bash install
 #######################################################
 aodieuvps_version="2.1"
 phpmyadmin_version="4.9.5" # Released 2020-03-21. Older version compatible with PHP 5.5 to 7.4 and MySQL 5.5 and newer. Currently supported for security fixes only.
 extplorer_version="2.1.13" # 05/15/2019 04:43 PM
 extplorer_id="82"
-script_root="https://aodieu.com/script/scripts"
-script_url="https://aodieu.com/script/scripts/7"
+script_root="https://raw.githubusercontent.com/aodieu/aodieuVPS/github/scripts"
+script_url="https://raw.githubusercontent.com/aodieu/aodieuVPS/github/scripts/7"
 low_ram='262144' # 256MB
 
 yum -y install gawk bc wget lsof
