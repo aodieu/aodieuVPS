@@ -44,8 +44,19 @@ if [[ -z "$(cat /etc/resolv.conf)" ]]; then
 fi
 
 centos_version=$(rpm -E %centos)
-if [ "$centos_version" != "6" ] && [ "$centos_version" != "7" ]; then
-	echo "aodieuVPS Script is only compatible with CentOS 6 or CentOS 7"
+rhel_version=$(rpm -E %rhel)
+
+# Detect OS version (CentOS or Rocky Linux)
+if [ -f /etc/rocky-release ]; then
+	os_version=$rhel_version
+elif [ -f /etc/centos-release ]; then
+	os_version=$centos_version
+else
+	os_version=$rhel_version
+fi
+
+if [ "$os_version" != "6" ] && [ "$os_version" != "7" ] && [ "$os_version" != "8" ]; then
+	echo "aodieuVPS Script is only compatible with CentOS 6, CentOS 7, or Rocky Linux 8"
 	echo "aborting script..."
 	exit
 fi
@@ -66,7 +77,7 @@ cd /root/
 rm -f install*
 
 if [ "$1" = "wordpress" ]; then
-	curl -sO https://aodieu.com/script/scripts/$centos_version/install.sh && bash install.sh wordpress
+	curl -sO https://aodieu.com/script/scripts/$os_version/install.sh && bash install.sh wordpress
 else
-	curl -sO https://aodieu.com/script/scripts/$centos_version/install.sh && bash install.sh
+	curl -sO https://aodieu.com/script/scripts/$os_version/install.sh && bash install.sh
 fi
