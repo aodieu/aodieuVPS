@@ -111,9 +111,9 @@ fi
 setenforce 0
 
 # Install EPEL + Remi Repo
-dnf -y install epel-release yum-utils
+dnf -y install epel-release dnf-plugins-core
 dnf config-manager --set-enabled powertools 2>/dev/null || dnf config-manager --set-enabled PowerTools 2>/dev/null
-rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-8.rpm
+dnf -y install http://rpms.famillecollet.com/enterprise/remi-release-8.rpm
 
 # Install MariaDB Repo 10.11 (LTS)
 cat > /etc/yum.repos.d/MariaDB.repo <<MARIAEOF
@@ -125,8 +125,9 @@ gpgkey = https://rpm.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck = 1
 MARIAEOF
 
-systemctl stop  saslauthd.service
-systemctl disable saslauthd.service
+# Gracefully handle optional saslauthd service (may not be installed)
+systemctl stop saslauthd.service 2>/dev/null || true
+systemctl disable saslauthd.service 2>/dev/null || true
 
 # Disable the FirewallD Service and use Iptables instead because FirewallD need reboot in order to start
 systemctl stop firewalld
@@ -146,7 +147,7 @@ sleep 3
 # Install Nginx, PHP-FPM and modules
 
 # Enable Remi Repo
-dnf-config-manager --enable remi
+dnf config-manager --enable remi
 
 # Reset PHP module
 dnf -y module reset php
@@ -188,10 +189,13 @@ fi
 # Install MariaDB
 dnf -y install MariaDB-server MariaDB-client
 
-# Install Others
-dnf -y install exim syslog-ng syslog-ng-libdbi cronie fail2ban unzip zip nano openssl ntpdate iptables-services
+# Install essential utilities first
+dnf -y install unzip zip nano openssl wget curl
 
-ntpdate asia.pool.ntp.org
+# Install Others
+dnf -y install exim syslog-ng syslog-ng-libdbi cronie fail2ban iptables-services chrony
+
+chronyc -a makestep
 hwclock --systohc
 
 clear

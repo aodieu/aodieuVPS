@@ -1,3 +1,4 @@
 da83d80a1f184d7defc5732955eab702  install
-0a25ff2c321e226ce508a5dd8bb811fe  md5sum.txt
+2da39eecacc00a2b6d6b1ae85e3efc9b  md5sum.txt
 963efa735a36c818ca73d16d7d2b2524  README.md
+88b2186b192a2a09561034ef3eaae76d  scripts/8/install.sh
