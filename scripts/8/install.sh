@@ -213,8 +213,8 @@ systemctl enable iptables.service
 systemctl enable ip6tables.service
 
 mkdir -p /home/$server_name/public_html
-mkdir /home/$server_name/private_html
-mkdir /home/$server_name/logs
+mkdir -p /home/$server_name/private_html
+mkdir -p /home/$server_name/logs
 chmod 777 /home/$server_name/logs
 
 mkdir -p /var/log/nginx
