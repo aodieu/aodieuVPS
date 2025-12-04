@@ -224,6 +224,7 @@ chown -R nginx:nginx /var/lib/php/session
 wget -q $script_url/html/index.html -O /home/$server_name/public_html/index.html
 
 systemctl start nginx.service
+systemctl start php-fpm.service
 systemctl start mariadb.service
 
 systemctl start iptables.service
@@ -250,35 +251,6 @@ fi # lessphpmem
 sed -i "s/server_name_here/$server_name/g" /etc/php-fpm.conf
 sed -i "s/server_name_here/$server_name/g" /etc/php-fpm.d/www.conf
 sed -i "s/max_children_here/$max_children/g" /etc/php-fpm.d/www.conf
-
-# Validate PHP-FPM configuration before starting
-if ! php-fpm -t 2>/dev/null; then
-	echo "PHP-FPM config validation failed, creating minimal fallback pool..."
-	cat > /etc/php-fpm.d/www.conf <<'PHPFPM_FALLBACK'
-[www]
-user = nginx
-group = nginx
-listen = 127.0.0.1:9000
-listen.owner = nginx
-listen.group = nginx
-listen.mode = 0660
-pm = dynamic
-pm.max_children = 5
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 3
-pm.max_requests = 500
-php_admin_value[error_log] = /var/log/php-fpm/www-error.log
-php_admin_flag[log_errors] = on
-PHPFPM_FALLBACK
-fi
-
-# Ensure include directive exists in main config
-if ! grep -q "include=/etc/php-fpm.d/\*.conf" /etc/php-fpm.conf 2>/dev/null; then
-	echo "include=/etc/php-fpm.d/*.conf" >> /etc/php-fpm.conf
-fi
-
-systemctl start php-fpm.service
 
 # dynamic PHP memory_limit calculation
 if [[ "$server_ram_total" -le '262144' ]]; then
