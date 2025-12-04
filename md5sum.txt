@@ -1,3 +1,3 @@
 b177423f8c976bdd38d269563b51f333  install
-1c90f090d12347fa3ca6ec1b8cc099e1  scripts/8/install.sh
+a267c4622b0850421622247291c6a9f3  scripts/8/install.sh
 64cfaa1d609594c2730917ede3c72dce  README.md

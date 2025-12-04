@@ -7,12 +7,12 @@
 # curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/github/$(rpm -E %rhel)/install && bash install
 #######################################################
 aodieuvps_version="2.1"
-phpmyadmin_version="5.2.1" # Released 2023-02-08. Compatible with PHP 7.0 to 8.4 and MySQL 5.5 and newer. Actively maintained and receives security updates.
+phpmyadmin_version="5.2.3" # Released 2025-10-08. Compatible with PHP 7.2 to 8.4 and MySQL 5.5 and newer. Actively maintained and receives security updates.
 extplorer_version="2.1.13" # 05/15/2019 04:43 PM
 extplorer_id="82"
 script_root="https://raw.githubusercontent.com/aodieu/aodieuVPS/github/scripts"
 script_url="https://raw.githubusercontent.com/aodieu/aodieuVPS/github/scripts/8"
-low_ram='262144' # 256MB
+low_ram='524288' # 512MB
 
 dnf -y install gawk bc wget lsof
 
@@ -57,9 +57,9 @@ printf "Chuan bi qua trinh cai dat... \n"
 printf "=========================================================================\n"
 
 printf "Ban hay lua chon phien ban PHP muon su dung:\n"
-prompt="Nhap vao lua chon cua ban [1-10]: "
-php_version="7.4"; # Default PHP 7.4
-options=("PHP 8.4" "PHP 8.3" "PHP 8.2" "PHP 8.1" "PHP 8.0" "PHP 7.4" "PHP 7.3" "PHP 7.2" "PHP 7.1" "PHP 7.0")
+prompt="Nhap vao lua chon cua ban [1-8]: "
+php_version="8.4"; # Default PHP 8.4
+options=("PHP 8.4" "PHP 8.3" "PHP 8.2" "PHP 8.1" "PHP 8.0" "PHP 7.4" "PHP 7.3" "PHP 7.2")
 PS3="$prompt"
 select opt in "${options[@]}"; do 
 
@@ -72,11 +72,9 @@ select opt in "${options[@]}"; do
     6) php_version="7.4"; break;;
     7) php_version="7.3"; break;;
     8) php_version="7.2"; break;;
-    9) php_version="7.1"; break;;
-    10) php_version="7.0"; break;;
 
-    $(( ${#options[@]}+1 )) ) printf "\nHe thong se cai dat PHP 7.4\n"; break;;
-    *) printf "Ban nhap sai, he thong cai dat PHP 7.4\n"; break;;
+    $(( ${#options[@]}+1 )) ) printf "\nHe thong se cai dat PHP 8.4\n"; break;;
+    *) printf "Ban nhap sai, he thong cai dat PHP 8.4\n"; break;;
     esac
     
 done
@@ -653,6 +651,15 @@ if [[ "$(expr $server_ram_total \>= 32000000)" = "1" ]]; then
 fi
 
 sed -i "s/server_name_here/$server_name/g" /etc/my.cnf
+
+# Remove deprecated MariaDB 10.11+ parameters from config
+sed -i '/innodb-large-prefix/d' /etc/my.cnf
+sed -i '/innodb-file-format/d' /etc/my.cnf
+sed -i '/innodb-log-files-in-group/d' /etc/my.cnf
+sed -i '/innodb-thread-concurrency/d' /etc/my.cnf
+sed -i '/innodb_support_xa/d' /etc/my.cnf
+sed -i '/innodb_file_format/d' /etc/my.cnf
+sed -i '/innodb_large_prefix/d' /etc/my.cnf
 
 rm -f /var/lib/mysql/ib_logfile0
 rm -f /var/lib/mysql/ib_logfile1
