@@ -4,15 +4,15 @@
 # To install type: 
 # curl -sO https://aodieu.com/script/install && bash install
 # or
-# curl -sO https://aodieu.com/script/$(rpm -E %rhel)/install && bash install
+# curl -sO https://aodieu.com/script/scripts/8/install.sh && bash install
 #######################################################
 aodieuvps_version="2.1"
-phpmyadmin_version="4.9.5" # Released 2020-03-21. Older version compatible with PHP 5.5 to 7.4 and MySQL 5.5 and newer. Currently supported for security fixes only.
+phpmyadmin_version="5.2.3" # Released 2025-10-08. Compatible with PHP 7.2 to 8.4 and MySQL 5.5 and newer. Actively maintained and receives security updates.
 extplorer_version="2.1.13" # 05/15/2019 04:43 PM
 extplorer_id="82"
 script_root="https://aodieu.com/script/scripts"
 script_url="https://aodieu.com/script/scripts/8"
-low_ram='262144' # 256MB
+low_ram='524288' # 512MB
 
 dnf -y install gawk bc wget lsof
 
@@ -57,9 +57,9 @@ printf "Chuan bi qua trinh cai dat... \n"
 printf "=========================================================================\n"
 
 printf "Ban hay lua chon phien ban PHP muon su dung:\n"
-prompt="Nhap vao lua chon cua ban [1-10]: "
-php_version="7.4"; # Default PHP 7.4
-options=("PHP 8.4" "PHP 8.3" "PHP 8.2" "PHP 8.1" "PHP 8.0" "PHP 7.4" "PHP 7.3" "PHP 7.2" "PHP 7.1" "PHP 7.0")
+prompt="Nhap vao lua chon cua ban [1-8]: "
+php_version="8.4"; # Default PHP 8.4
+options=("PHP 8.4" "PHP 8.3" "PHP 8.2" "PHP 8.1" "PHP 8.0" "PHP 7.4" "PHP 7.3" "PHP 7.2")
 PS3="$prompt"
 select opt in "${options[@]}"; do 
 
@@ -72,11 +72,9 @@ select opt in "${options[@]}"; do
     6) php_version="7.4"; break;;
     7) php_version="7.3"; break;;
     8) php_version="7.2"; break;;
-    9) php_version="7.1"; break;;
-    10) php_version="7.0"; break;;
 
-    $(( ${#options[@]}+1 )) ) printf "\nHe thong se cai dat PHP 7.4\n"; break;;
-    *) printf "Ban nhap sai, he thong cai dat PHP 7.4\n"; break;;
+    $(( ${#options[@]}+1 )) ) printf "\nHe thong se cai dat PHP 8.4\n"; break;;
+    *) printf "Ban nhap sai, he thong cai dat PHP 8.4\n"; break;;
     esac
     
 done
@@ -224,6 +222,7 @@ chown -R nginx:nginx /var/lib/php/session
 wget -q $script_url/html/index.html -O /home/$server_name/public_html/index.html
 
 systemctl start nginx.service
+systemctl start php-fpm.service
 systemctl start mariadb.service
 
 systemctl start iptables.service
@@ -250,35 +249,6 @@ fi # lessphpmem
 sed -i "s/server_name_here/$server_name/g" /etc/php-fpm.conf
 sed -i "s/server_name_here/$server_name/g" /etc/php-fpm.d/www.conf
 sed -i "s/max_children_here/$max_children/g" /etc/php-fpm.d/www.conf
-
-# Validate PHP-FPM configuration before starting
-if ! php-fpm -t 2>/dev/null; then
-	echo "PHP-FPM config validation failed, creating minimal fallback pool..."
-	cat > /etc/php-fpm.d/www.conf <<'PHPFPM_FALLBACK'
-[www]
-user = nginx
-group = nginx
-listen = 127.0.0.1:9000
-listen.owner = nginx
-listen.group = nginx
-listen.mode = 0660
-pm = dynamic
-pm.max_children = 5
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 3
-pm.max_requests = 500
-php_admin_value[error_log] = /var/log/php-fpm/www-error.log
-php_admin_flag[log_errors] = on
-PHPFPM_FALLBACK
-fi
-
-# Ensure include directive exists in main config
-if ! grep -q "include=/etc/php-fpm.d/\*.conf" /etc/php-fpm.conf 2>/dev/null; then
-	echo "include=/etc/php-fpm.d/*.conf" >> /etc/php-fpm.conf
-fi
-
-systemctl start php-fpm.service
 
 # dynamic PHP memory_limit calculation
 if [[ "$server_ram_total" -le '262144' ]]; then
@@ -360,7 +330,7 @@ if [ "$php_version" = "5.4" ]; then
 	opcache_path=`find / -name 'opcache.so'`
 fi
 
-wget -q https://raw.github.com/amnuts/opcache-gui/master/index.php -O /home/$server_name/private_html/op.php
+wget -q "$script_root/component/opcache-gui/index.php.txt" -O "/home/$server_name/private_html/op.php" || { echo "ERROR: Cannot download OPcache dashboard from aodieu.com" >&2; exit 1; }
 cat > /etc/php.d/*opcache*.ini <<END
 zend_extension=$opcache_path
 opcache.enable=1
@@ -681,6 +651,15 @@ if [[ "$(expr $server_ram_total \>= 32000000)" = "1" ]]; then
 fi
 
 sed -i "s/server_name_here/$server_name/g" /etc/my.cnf
+
+# Remove deprecated MariaDB 10.11+ parameters from config
+sed -i '/innodb-large-prefix/d' /etc/my.cnf
+sed -i '/innodb-file-format/d' /etc/my.cnf
+sed -i '/innodb-log-files-in-group/d' /etc/my.cnf
+sed -i '/innodb-thread-concurrency/d' /etc/my.cnf
+sed -i '/innodb_support_xa/d' /etc/my.cnf
+sed -i '/innodb_file_format/d' /etc/my.cnf
+sed -i '/innodb_large_prefix/d' /etc/my.cnf
 
 rm -f /var/lib/mysql/ib_logfile0
 rm -f /var/lib/mysql/ib_logfile1

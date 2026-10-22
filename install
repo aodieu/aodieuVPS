@@ -2,7 +2,7 @@
 ############################################################################################
 # aodieuVPS Script Installer v1.0
 # To install aodieuVPS Script type: 
-# curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/github/install && bash install
+# curl -sO https://aodieu.com/script/install && bash install
 ############################################################################################
 
 if [ $(id -u) != "0" ]; then
@@ -55,10 +55,33 @@ else
 	os_version=$rhel_version
 fi
 
-if [ "$os_version" != "6" ] && [ "$os_version" != "7" ] && [ "$os_version" != "8" ]; then
-	echo "aodieuVPS Script is only compatible with CentOS 6, CentOS 7, or Rocky Linux 8"
+if [ "$os_version" != "6" ] && [ "$os_version" != "7" ] && [ "$os_version" != "8" ] && [ "$os_version" != "10" ]; then
+	echo "aodieuVPS Script is only compatible with CentOS 6, CentOS 7, Rocky Linux 8, or Rocky Linux 10"
 	echo "aborting script..."
 	exit
+fi
+
+# Prevent destructive reinstallation even if the previous run stopped before
+# writing scripts.conf. Existing web administration files indicate a partial
+# installation; don't modify MariaDB credentials or rewrite the Nginx setup.
+existing_aodieuvps_path=""
+if [ -e /etc/aodieuvps/scripts.conf ]; then
+    existing_aodieuvps_path=/etc/aodieuvps/scripts.conf
+elif [ -e /root/aodieuvps-script.txt ]; then
+    existing_aodieuvps_path=/root/aodieuvps-script.txt
+else
+    for existing_admin_dir in /home/*/private_html/aodieuvps; do
+        if [ -d "$existing_admin_dir" ]; then
+            existing_aodieuvps_path="$existing_admin_dir"
+            break
+        fi
+    done
+fi
+if [ -n "$existing_aodieuvps_path" ]; then
+    printf 'ERROR: Existing or partial AodieuVPS installation detected: %s\n' "$existing_aodieuvps_path" >&2
+    printf 'Full reinstallation is unsafe: it would rewrite Nginx, MariaDB passwords, and service configuration.\n' >&2
+    printf 'Repair affected components in place, or reinstall Rocky Linux on a disposable test server before running this script again.\n' >&2
+    exit 3
 fi
 
 if [ -f /etc/aodieuvps/scripts.conf ]; then
@@ -70,14 +93,47 @@ if [ -f /etc/aodieuvps/scripts.conf ]; then
 exit
 fi
 
-rm -f install*
+# Language selection applies to Rocky 10 installer and management menu.
+# Keep Vietnamese as the default to preserve the existing experience.
+installer_language=vi
+if [ "$os_version" = "10" ]; then
+    printf '\n=============================================================\n'
+    printf '             aodieuVPS - Choose language / Chon ngon ngu\n'
+    printf '=============================================================\n'
+    printf '  1) English\n  2) Tieng Viet (default)\n'
+    read -r -p 'Select / Lua chon [1-2]: ' language_choice
+    case "$language_choice" in
+        1) installer_language=en ;;
+        2|"") installer_language=vi ;;
+        *) printf 'Invalid choice; using Vietnamese.\n' ;;
+    esac
+fi
 
-cd /root/
-
-rm -f install*
-
-if [ "$1" = "wordpress" ]; then
-	curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/github/scripts/$os_version/install.sh && bash install.sh wordpress
+# Preserve existing versions while routing Rocky Linux 10 to scripts/10/install.sh.
+# Never execute an empty download or a stale install.sh file.
+cd /root/ || exit 1
+installer_tmp=$(mktemp /root/aodieuvps-install.XXXXXX) || exit 1
+trap 'rm -f "$installer_tmp"' EXIT
+installer_url="https://aodieu.com/script/scripts/$os_version/install.sh"
+if ! curl -fSL --retry 3 --connect-timeout 15 "$installer_url" -o "$installer_tmp" || [ ! -s "$installer_tmp" ]; then
+    echo "Cannot download installer: $installer_url (check connection, DNS and aodieu.com deployment)" >&2
+    exit 1
+fi
+if ! bash -n "$installer_tmp"; then
+    echo "Downloaded installer is not valid Bash: $installer_url (check aodieu.com hosting/Cloudflare rules)" >&2
+    exit 1
+fi
+if [ "$os_version" = "10" ]; then
+    if [ "${1:-}" = "wordpress" ]; then
+        bash "$installer_tmp" --lang="$installer_language" wordpress
+    else
+        bash "$installer_tmp" --lang="$installer_language"
+    fi
 else
-	curl -sO https://raw.githubusercontent.com/aodieu/aodieuVPS/github/scripts/$os_version/install.sh && bash install.sh
+    # Keep the original CentOS 6/7 and Rocky 8 command-line contract.
+    if [ "${1:-}" = "wordpress" ]; then
+        bash "$installer_tmp" wordpress
+    else
+        bash "$installer_tmp"
+    fi
 fi

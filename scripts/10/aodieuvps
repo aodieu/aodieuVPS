@@ -1,0 +1,77 @@
+#!/bin/bash
+
+. /etc/aodieuvps/scripts.conf
+
+# Language selected during installation; can be changed here without renumbering
+# any pre-existing administrative action.
+current_lang="${script_language:-vi}"
+if [ "$current_lang" = en ]; then
+    prompt="Enter menu number: "
+    options=("List Domains" "Add Domain" "Delete Domain" "Backup Website" "Backup Database" "Schedule Database Backup" "Disable Scheduled Backup" "Create Database" "Delete Database" "Change VPS Password" "Change Admin Port" "Park Domain" "Forward Domain" "Fix Webserver Permissions" "Upgrade Server" "Change SSH Port" "Install Domain SSL" "Install Subdomain SSL" "Remove SSL" "Change Language" "Collect Installation Diagnostics")
+    exit_label="Exit"
+    goodbye="Goodbye! See you at http://aodieu.com/"
+    invalid="Invalid selection; enter a menu number"
+    menudir="/etc/aodieuvps/menu/en"
+else
+    prompt="Nhap vao lua chon menu cua ban: "
+    options=("Liet Ke Domain" "Them Domain" "Xoa Domain" "Sao Luu Code" "Sao Luu Data" "Tu Dong Sao Luu" "Tat Tu Dong Sao Luu" "Tao Database" "Xoa Database" "Doi Pass VPS" "Doi Port Admin" "Them Park Domain" "Them Redirect Domain" "Phan Quyen Webserver" "Nang Cap Server" "Doi Port SSH" "Cai SSL cho Domain" "Cai SSL cho Sub Domain" "Xoa SSL" "Doi Ngon Ngu" "Thu Thap Bao Cao Cai Dat")
+    exit_label="Thoat"
+    goodbye="Chao tam biet! Hen gap lai ban tai http://aodieu.com/"
+    invalid="Ban nhap sai, vui long nhap theo so thu tu"
+    menudir="/etc/aodieuvps/menu"
+fi
+clear
+printf '========================================================================\n'
+printf '        AodieuVPS Script v%s - https://aodieu.com/\n' "$aodieuvps_version"
+printf '========================================================================\n'
+printf '                   AodieuVPS Menu (%s)\n' "$current_lang"
+printf '========================================================================\n'
+PS3="
+$prompt"
+select opt in "${options[@]}" "$exit_label"; do 
+
+    case "$REPLY" in
+	    1 ) "$menudir"/liet-ke-domain;;
+	    2 ) "$menudir"/them-domain;;
+	    3 ) "$menudir"/xoa-domain;;
+	    4 ) "$menudir"/sao-luu-code;;
+	    5 ) "$menudir"/sao-luu-data;;
+	    6 ) "$menudir"/tu-dong-sao-luu;;
+	    7 ) "$menudir"/tat-tu-dong-sao-luu;;
+	    8 ) "$menudir"/tao-database;;
+	    9 ) "$menudir"/xoa-database;;
+	    10 ) "$menudir"/doi-pass-vps;;
+	    11 ) "$menudir"/doi-port-admin;;
+	    12 ) "$menudir"/park-domain;;
+	    13 ) "$menudir"/forward-domain;;
+	    14 ) "$menudir"/phan-quyen-webserver;;
+	    15 ) "$menudir"/nang-cap-server;;
+		16 ) "$menudir"/doi-port-ssh;;
+		17 ) "$menudir"/cai-ssl-domain;;
+		18 ) "$menudir"/cai-ssl-subdomain;;
+		19 ) "$menudir"/xoa-ssl;;
+	    # End Menu
+
+	    20 )
+            printf '\n1) English  2) Tieng Viet\n'
+            read -r -p 'Select / Lua chon [1-2]: ' new_language
+            case "$new_language" in 1) new_language=en;; 2) new_language=vi;; *) echo "$invalid"; continue;; esac
+            sed -i -E "s/^script_language=.*/script_language=\"$new_language\"/" /etc/aodieuvps/scripts.conf
+            exec "$0" ;;
+        21 )
+            # Read-only diagnostic collector; no GUI, uploads or service changes.
+            if [ -x /usr/local/libexec/aodieuvps/diagnostics.sh ]; then
+                /usr/local/libexec/aodieuvps/diagnostics.sh
+            else
+                if [ "$current_lang" = en ]; then
+                    echo "Diagnostic collector is missing; check AodieuVPS installation."
+                else
+                    echo "Khong tim thay cong cu chan doan; kiem tra ban cai dat AodieuVPS."
+                fi
+            fi ;;
+            $(( ${#options[@]}+1 )) ) printf '%s\n' "$goodbye"; break;;
+	    *) echo "$invalid";continue;;
+
+    esac
+
+done

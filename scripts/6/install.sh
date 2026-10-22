@@ -2,15 +2,15 @@
 #######################################################
 # AodieuVPS Script v2.0.4 for CentOS 6
 # To install type: 
-# curl -sO https://aodieu.com/install && bash install
+# curl -fsSLO https://aodieu.com/script/install && bash install
 # or
-# curl -sO https://aodieu.com/scripts/$(rpm -E %centos)/install && bash install
+# curl -fsSLO https://aodieu.com/script/scripts/6/install.sh && bash install.sh
 #######################################################
 aodieuvps_version="2.0.4"
 phpmyadmin_version="4.8.0.1" # Released 2018-04-19. Future version compatible with PHP 5.5 to 7.2 and MySQL 5.5 and newer.
 extplorer_version="2.1.10"
-script_root="https://raw.githubusercontent.com/aodieu/aodieuVPS/master/scripts"
-script_url="https://raw.githubusercontent.com/aodieu/aodieuVPS/master/scripts/6"
+script_root="https://aodieu.com/script/scripts"
+script_url="https://aodieu.com/script/scripts/6"
 low_ram='262144' # 256MB
 
 yum -y install gawk bc wget lsof
@@ -293,7 +293,7 @@ if [ "$php_version" = "5.4" ]; then
 	opcache_path=`find / -name 'opcache.so'`
 fi
 
-wget -q https://raw.github.com/amnuts/opcache-gui/master/index.php -O /home/$server_name/private_html/op.php
+wget -q "$script_root/component/opcache-gui/index.php.txt" -O "/home/$server_name/private_html/op.php" || { echo "ERROR: Cannot download OPcache dashboard from aodieu.com" >&2; exit 1; }
 cat > /etc/php.d/*opcache*.ini <<END
 zend_extension=$opcache_path
 opcache.enable=1
